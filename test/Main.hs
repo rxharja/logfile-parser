@@ -4,6 +4,7 @@ module Main (main) where
 import Text.RawString.QQ ( r )
 import Data.LogFile 
 import Text.Trifecta 
+import Data.ActivityLog
 
 testLogfile :: String
 testLogfile = [r|
@@ -34,5 +35,9 @@ testLogfile = [r|
 |]
 
 main :: IO ()
-main = 
-  print $ parseString parseLogFile mempty testLogfile  
+main = do
+  let logfile = parseString parseLogFile mempty testLogfile  
+
+  print logfile
+
+  print $ averageTimeByActivity . toActivityLog <$> logfile

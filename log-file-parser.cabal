@@ -60,6 +60,7 @@ library
     -- Modules exported by the library.
     exposed-modules:  Data.LogFile
                     , Data.DateTime
+                    , Data.ActivityLog
 
     -- Modules included in this library but not exported.
     -- other-modules:
