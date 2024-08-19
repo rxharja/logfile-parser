@@ -9,14 +9,19 @@ import Data.DateTime
 
 type Entry = String
 
+newtype Header = Header { headerDate :: Date } deriving (Ord, Eq)
+
+instance Show Header where
+  show (Header d) = '#' : show d
+
 data Log = Log { logTime :: Time, logEntry :: Entry } deriving (Ord, Eq)
 
 instance Show Log where
   show (Log t e) = show t ++ " " ++ e
 
-type Section = (Date, [Log])
+type Section = (Header, [Log])
 
-newtype LogFile = LogFile { logFile :: Map Date [Log] } deriving (Ord, Eq)
+newtype LogFile = LogFile { logFile :: Map Header [Log] } deriving (Ord, Eq)
 
 instance Show LogFile where
   show (LogFile m) = ("\n" ++) . unlines . map showSection . M.toList $ m
@@ -47,6 +52,9 @@ parseEnd = try parseComment <|> try (some (oneOf "\n")) <|> (eof >> return mempt
 skipRest :: Parser ()
 skipRest = try (skipMany parseEnd) <|> eof
 
+parseHeader :: Parser Header
+parseHeader = Header <$> (char '#' *> parseDate)
+
 parseEntry :: Parser Entry
 parseEntry = manyTill anyChar parseEnd
 
@@ -54,7 +62,7 @@ parseLog :: Parser Log
 parseLog = Log <$> parseTime <* char ' ' <*> parseEntry <* skipRest
 
 parseSection :: Parser Section
-parseSection = (,) <$> parseDate <* skipRest' <*> some parseLog
+parseSection = (,) <$> parseHeader <* skipRest' <*> some parseLog
 
 parseLogFile :: Parser LogFile
 parseLogFile = (LogFile . M.fromList) <$ many parseEnd <*> many parseSection

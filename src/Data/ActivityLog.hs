@@ -34,7 +34,7 @@ averageTimeByActivity (ActivityLog m) = ActivitySummary avg
 toActivityLog :: LogFile -> ActivityLog DateTime
 toActivityLog (LogFile m) = ActivityLog $ M.foldrWithKey aggregateActivities M.empty m
     where
-      addLogEntry d (Log t e) = M.insertWith (++) e [DateTime d (Total t)]
+      addLogEntry (Header d) (Log t e) = M.insertWith (++) e [DateTime d (Total t)]
       calcTimeSpent (Log t _) (Log t' e) = Log (totalTime $ Total t `timeSpent` Total t') e
       aggregateActivities d logs acc = foldr (addLogEntry d) acc logs'
         where 

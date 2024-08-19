@@ -16,7 +16,7 @@ type Minutes = Int
 data Date = Date { year :: Year, month :: Month, day :: Day } deriving (Ord, Eq)
 
 instance Show Date where
-  show (Date y m d) = '#' : show y ++ "-" ++ toTwoDigit m ++ "-" ++ toTwoDigit d
+  show (Date y m d) = show y ++ "-" ++ toTwoDigit m ++ "-" ++ toTwoDigit d
 
 data Time = Time { hours :: Hours, minutes :: Minutes } deriving (Ord, Eq)
 
@@ -91,7 +91,7 @@ parseTime = Time <$> parseHours <* char ':' <*> parseMinutes
 
 parseDate :: Parser Date
 parseDate = Date
-         <$  char '#' <* optional (char ' ')
+         <$  optional (char ' ')
          <*> parseYear <* char '-'
          <*> parseMonth <* char '-'
          <*> parseDay
