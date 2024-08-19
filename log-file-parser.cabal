@@ -53,7 +53,7 @@ extra-doc-files:    CHANGELOG.md
 common warnings
     ghc-options: -Wall
 
-library
+library 
     -- Import common warning flags.
     import:           warnings
 
@@ -114,7 +114,7 @@ test-suite log-file-parser-test
     default-language: Haskell2010
 
     -- Modules included in this executable, other than Main.
-    -- other-modules:
+    other-modules:    DateTimeTests
 
     -- LANGUAGE extensions used by modules in this package.
     -- other-extensions:
@@ -133,3 +133,6 @@ test-suite log-file-parser-test
                     , log-file-parser
                     , raw-strings-qq
                     , trifecta
+                    , QuickCheck
+                    , hspec
+                    , checkers

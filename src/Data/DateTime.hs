@@ -29,13 +29,13 @@ toTwoDigit :: (Show a, Num a, Ord a) => a -> [Char]
 toTwoDigit n = if n < 10 then '0':show n else show n
 
 timeSpent :: Total -> Total -> Total
-timeSpent t1 t2 = decimalToTotal (totalToDecimal t1 - totalToDecimal t2) 
+timeSpent t1 t2 = rationalToTotal (totalToRational t1 - totalToRational t2) 
 
 computeTimeSpent :: [Total] -> [Total]
 computeTimeSpent = liftA2 (zipWith timeSpent) tail id
 
 instance Semigroup Total where
-  t1 <> t2 = decimalToTotal (totalToDecimal t1 + totalToDecimal t2)
+  t1 <> t2 = rationalToTotal (totalToRational t1 + totalToRational t2)
 
 instance Monoid Total where
   mempty = Total (Time 0 0)
@@ -48,22 +48,23 @@ data DateTime = DateTime { date :: Date, time :: Total } deriving (Ord, Eq)
 instance Show DateTime where
   show (DateTime d t) = show d ++ ", " ++ show t
 
-toMinutes :: RealFrac a => a -> Minutes
+toMinutes :: Rational -> Minutes
 toMinutes = truncate . (* 60)
 
-toDecimal :: RealFrac a => a -> a
-toDecimal = (/ 60)
+toRational' :: Rational -> Rational
+toRational' = (/ 60)
 
-getDecimal :: RealFrac a => a -> a
-getDecimal x = x - fromInteger (floor x)
+getRational :: Rational -> Rational
+getRational x = x - fromInteger (truncate x)
 
-totalToDecimal :: RealFrac a => Total -> a
-totalToDecimal (Total (Time h m)) = fromIntegral h + (toDecimal . fromIntegral) m
+totalToRational :: Total -> Rational
+totalToRational (Total (Time h m)) = fromIntegral h + (toRational' . fromIntegral) m
 
-decimalToTotal :: RealFrac a => a -> Total
-decimalToTotal x = 
-  let decimal = getDecimal x
-   in Total (Time (fromIntegral . floor $ x) (fromIntegral . toMinutes $ decimal))
+rationalToTotal :: Rational -> Total
+rationalToTotal x = 
+  let hrs = truncate x
+      mins = toMinutes . getRational $ x
+   in Total $ Time hrs mins
 
 parseRange :: Int -> Int -> Int -> String -> Parser Int
 parseRange x start stop fail' = do
@@ -71,7 +72,7 @@ parseRange x start stop fail' = do
   if n >= start && n <= stop then return n else fail fail'
 
 parseYear :: Parser Year
-parseYear = parseRange 4 1 3000 "This doesn't look like a sensible year"
+parseYear = parseRange 4 1900 2100 "Years must be between 1900 and 2100"
 
 parseMonth :: Parser Month
 parseMonth = parseRange 2 1 12 "Months must be between 1 and 12"

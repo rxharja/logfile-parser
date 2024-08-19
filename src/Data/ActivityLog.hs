@@ -22,14 +22,14 @@ instance Show a => Show (ActivitySummary a) where
 
 totalTimeByActivity :: ActivityLog DateTime -> ActivitySummary Total
 totalTimeByActivity (ActivityLog m) = ActivitySummary
-  (M.map (decimalToTotal. sum . map (totalToDecimal . time)) m)
+  (M.map (rationalToTotal. sum . map (totalToRational . time)) m)
 
 averageTimeByActivity :: ActivityLog DateTime -> ActivitySummary Total
 averageTimeByActivity (ActivityLog m) = ActivitySummary avg
   where
-    length' = M.map (fromIntegral . length) m  :: Map Entry Double
-    total = M.map (sum . map (totalToDecimal . time)) m :: Map Entry Double
-    avg = M.map decimalToTotal $ M.unionWith (\l t -> t / l) length' total
+    length' = M.map (fromIntegral . length) m  :: Map Entry Rational
+    total = M.map (sum . map (totalToRational . time)) m :: Map Entry Rational
+    avg = M.map rationalToTotal $ M.unionWith (\l t -> t / l) length' total
 
 toActivityLog :: LogFile -> ActivityLog DateTime
 toActivityLog (LogFile m) = ActivityLog $ M.foldrWithKey aggregateActivities M.empty m

@@ -5,6 +5,7 @@ import Text.RawString.QQ ( r )
 import Data.LogFile 
 import Text.Trifecta 
 import Data.ActivityLog
+import qualified DateTimeTests (main)
 
 testLogfile :: String
 testLogfile = [r|
@@ -34,10 +35,12 @@ testLogfile = [r|
 22:00 Sleep
 |]
 
+test :: IO ()
+test = do
+  let logfile = parseString parseLogFile mempty testLogfile  
+  print logfile
+  print $ averageTimeByActivity . toActivityLog <$> logfile
+
 main :: IO ()
 main = do
-  let logfile = parseString parseLogFile mempty testLogfile  
-
-  print logfile
-
-  print $ averageTimeByActivity . toActivityLog <$> logfile
+  DateTimeTests.main
