@@ -16,7 +16,7 @@ type Minutes = Int
 data Date = Date { year :: Year, month :: Month, day :: Day } deriving (Ord, Eq)
 
 instance Show Date where
-  show (Date y m d) = show y ++ "-" ++ toTwoDigit m ++ "-" ++ toTwoDigit d
+  show (Date y m d) = '#' : show y ++ "-" ++ toTwoDigit m ++ "-" ++ toTwoDigit d
 
 data Time = Time { hours :: Hours, minutes :: Minutes } deriving (Ord, Eq)
 
@@ -46,7 +46,7 @@ instance Show Total where
 data DateTime = DateTime { date :: Date, time :: Total } deriving (Ord, Eq)
 
 instance Show DateTime where
-  show (DateTime d t) = show d ++ ", " ++ show t
+  show (DateTime d t) = (tail . show) d ++ ", " ++ show t
 
 toMinutes :: Rational -> Minutes
 toMinutes = truncate . (* 60)
