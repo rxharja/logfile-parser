@@ -8,6 +8,7 @@ import Test.Hspec
 import Test.QuickCheck.Classes
 import Test.Hspec.QuickCheck (prop)
 import Text.Trifecta (parseString, Result (Success, Failure), ErrInfo (ErrInfo, _errDoc))
+import Text.Trifecta.Parser (Parser)
 
 instance Arbitrary Date where
   arbitrary = do
@@ -34,6 +35,12 @@ instance EqProp Total where
 quickBatchSpec :: TestBatch -> Spec
 quickBatchSpec (name, tests) = describe name $ mapM_ (uncurry prop) tests
 
+testParser :: (Show a, Eq a) => Parser a -> a -> Expectation
+testParser parser x = 
+  case parseString parser mempty ('#':show x) of 
+   Text.Trifecta.Success y -> y `shouldBe` x
+   Text.Trifecta.Failure (ErrInfo {_errDoc=doc}) -> fail (show doc)
+
 main :: IO ()
 main = hspec $ do
   describe "Total" $ do
@@ -46,12 +53,8 @@ main = hspec $ do
 
   describe "Time" $ do
     prop "should successfully parse the text representation of time" $ 
-      \x -> case parseString parseTime mempty (show x) of 
-             Text.Trifecta.Success y -> y `shouldBe` x
-             Text.Trifecta.Failure (ErrInfo {_errDoc=doc}) -> fail (show doc)
+      \x -> testParser parseTime x
 
   describe "Date" $ do
     prop "should successfully parse the text representation of date" $ 
-      \x -> case parseString parseDate mempty ('#':show x) of 
-             Text.Trifecta.Success y -> y `shouldBe` x
-             Text.Trifecta.Failure (ErrInfo {_errDoc=doc}) -> fail (show doc)
+      \x -> testParser parseDate x
