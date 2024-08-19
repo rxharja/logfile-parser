@@ -35,9 +35,9 @@ instance EqProp Total where
 quickBatchSpec :: TestBatch -> Spec
 quickBatchSpec (name, tests) = describe name $ mapM_ (uncurry prop) tests
 
-testParser :: (Show a, Eq a) => Parser a -> a -> Expectation
-testParser parser x = 
-  case parseString parser mempty ('#':show x) of 
+testParser :: (Show a, Eq a) => Parser a -> (a -> String) -> a -> Expectation
+testParser parser toStr x = 
+  case parseString parser mempty (toStr x) of 
    Text.Trifecta.Success y -> y `shouldBe` x
    Text.Trifecta.Failure (ErrInfo {_errDoc=doc}) -> fail (show doc)
 
@@ -46,15 +46,15 @@ main = hspec $ do
   describe "Total" $ do
     -- we can't convert rationals to the time format and return it back
     prop "Converting from Total to Rational is isomorphic" $ 
-      \x -> (rationalToTotal . totalToRational) x == x
+      \x -> (rationalToTotal . totalToRational $ x) == x
 
     quickBatchSpec $ semigroup (undefined :: (Total, Int))
     quickBatchSpec $ monoid (undefined :: (Total, String))
 
   describe "Time" $ do
     prop "should successfully parse the text representation of time" $ 
-      \x -> testParser parseTime x
+      testParser parseTime show
 
   describe "Date" $ do
     prop "should successfully parse the text representation of date" $ 
-      \x -> testParser parseDate x
+      testParser parseDate $ ('#' :) . show
