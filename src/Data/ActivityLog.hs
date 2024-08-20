@@ -1,7 +1,8 @@
 module Data.ActivityLog where
 
-import Data.DateTime
-import Data.LogFile
+import Parser.DateTime
+import Parser.LogFile
+import Data.Total
 import Data.Map (Map)
 import qualified Data.Map as M
 import GHC.Base (Applicative(liftA2))
@@ -27,8 +28,8 @@ totalTimeByActivity (ActivityLog m) = ActivitySummary
 averageTimeByActivity :: ActivityLog DateTime -> ActivitySummary Total
 averageTimeByActivity (ActivityLog m) = ActivitySummary avg
   where
-    length' = M.map (fromIntegral . length) m  :: Map Entry Rational
-    total = M.map (sum . map (totalToRational . time)) m :: Map Entry Rational
+    length' = M.map (fromIntegral . length) m  
+    total = M.map (sum . map (totalToRational . time)) m 
     avg = M.map rationalToTotal $ M.unionWith (\l t -> t / l) length' total
 
 toActivityLog :: LogFile -> ActivityLog DateTime
@@ -36,6 +37,7 @@ toActivityLog (LogFile m) = ActivityLog $ M.foldrWithKey aggregateActivities M.e
     where
       addLogEntry (Header d) (Log t e) = M.insertWith (++) e [DateTime d (Total t)]
       calcTimeSpent (Log t _) (Log t' e) = Log (totalTime $ Total t `timeSpent` Total t') e
+
       aggregateActivities d logs acc = foldr (addLogEntry d) acc logs'
         where 
           logs' = liftA2 (zipWith calcTimeSpent) tail id logs

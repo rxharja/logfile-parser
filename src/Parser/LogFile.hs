@@ -1,11 +1,11 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Data.LogFile where
+module Parser.LogFile where
 import Data.Map (Map)
 import qualified Data.Map as M
 import Text.Trifecta
 import Control.Applicative 
-import Data.DateTime
+import Parser.DateTime
 
 type Entry = String
 
@@ -27,9 +27,6 @@ instance Show LogFile where
   show (LogFile m) = ("\n" ++) . unlines . map showSection . M.toList $ m
     where
       showSection (d,t) = unlines (("# " ++ show d): map show t)
-
-combineAllTimes :: [Log] -> Total
-combineAllTimes = mconcat . computeTimeSpent . map (Total . logTime)
 
 skipEOL :: Parser ()
 skipEOL = skipMany (oneOf "\n")

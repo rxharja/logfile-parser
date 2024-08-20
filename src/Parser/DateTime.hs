@@ -1,5 +1,4 @@
-module Data.DateTime where
-import GHC.Base (Applicative(liftA2))
+module Parser.DateTime where
 
 import Text.Trifecta
 
@@ -15,56 +14,16 @@ type Minutes = Int
 
 data Date = Date { year :: Year, month :: Month, day :: Day } deriving (Ord, Eq)
 
-instance Show Date where
-  show (Date y m d) = show y ++ "-" ++ toTwoDigit m ++ "-" ++ toTwoDigit d
-
 data Time = Time { hours :: Hours, minutes :: Minutes } deriving (Ord, Eq)
 
 instance Show Time where
   show (Time h m) = toTwoDigit h ++ ":" ++ toTwoDigit m
 
-newtype Total = Total { totalTime :: Time } deriving (Ord, Eq)
+instance Show Date where
+  show (Date y m d) = show y ++ "-" ++ toTwoDigit m ++ "-" ++ toTwoDigit d
 
 toTwoDigit :: (Show a, Num a, Ord a) => a -> [Char]
 toTwoDigit n = if n < 10 then '0':show n else show n
-
-timeSpent :: Total -> Total -> Total
-timeSpent t1 t2 = rationalToTotal (totalToRational t1 - totalToRational t2) 
-
-computeTimeSpent :: [Total] -> [Total]
-computeTimeSpent = liftA2 (zipWith timeSpent) tail id
-
-instance Semigroup Total where
-  t1 <> t2 = rationalToTotal (totalToRational t1 + totalToRational t2)
-
-instance Monoid Total where
-  mempty = Total (Time 0 0)
-
-instance Show Total where
-  show (Total (Time h m)) = show h ++ " hours and " ++ show m ++ " minutes."
-
-data DateTime = DateTime { date :: Date, time :: Total } deriving (Ord, Eq)
-
-instance Show DateTime where
-  show (DateTime d t) = (tail . show) d ++ ", " ++ show t
-
-toMinutes :: Rational -> Minutes
-toMinutes = truncate . (* 60)
-
-toRational' :: Rational -> Rational
-toRational' = (/ 60)
-
-getRational :: Rational -> Rational
-getRational x = x - fromInteger (truncate x)
-
-totalToRational :: Total -> Rational
-totalToRational (Total (Time h m)) = fromIntegral h + (toRational' . fromIntegral) m
-
-rationalToTotal :: Rational -> Total
-rationalToTotal x = 
-  let hrs = truncate x
-      mins = toMinutes . getRational $ x
-   in Total $ Time hrs mins
 
 parseRange :: Int -> Int -> Int -> String -> Parser Int
 parseRange x start stop fail' = do
@@ -95,4 +54,3 @@ parseDate = Date
          <*> parseYear <* char '-'
          <*> parseMonth <* char '-'
          <*> parseDay
-

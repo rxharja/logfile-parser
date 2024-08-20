@@ -1,11 +1,9 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
-module DateTimeTests where
+module ParserTests where
 
-import Data.DateTime
+import Parser.DateTime
 import Test.QuickCheck
-import Test.QuickCheck.Checkers
 import Test.Hspec
-import Test.QuickCheck.Classes
 import Test.Hspec.QuickCheck (prop)
 import Text.Trifecta (parseString, Result (Success, Failure), ErrInfo (ErrInfo, _errDoc))
 import Text.Trifecta.Parser (Parser)
@@ -23,18 +21,6 @@ instance Arbitrary Time where
     minutes' <- choose (0, 59)
     return $ Time hours' minutes'
 
-instance Arbitrary Total where
-  arbitrary = Total <$> arbitrary
-
-instance Arbitrary DateTime where
-  arbitrary = DateTime <$> arbitrary <*> arbitrary
-
-instance EqProp Total where
-  (=-=) = eq
-
-quickBatchSpec :: TestBatch -> Spec
-quickBatchSpec (name, tests) = describe name $ mapM_ (uncurry prop) tests
-
 testParser :: (Show a, Eq a) => Parser a -> a -> Expectation
 testParser parser x = 
   case parseString parser mempty (show x) of 
@@ -43,14 +29,6 @@ testParser parser x =
 
 main :: IO ()
 main = hspec $ do
-  describe "Total" $ do
-    -- we can't convert rationals to the time format and return it back
-    prop "Converting from Total to Rational is isomorphic" $ 
-      \x -> (rationalToTotal . totalToRational $ x) == x
-
-    quickBatchSpec $ semigroup (undefined :: (Total, Int))
-    quickBatchSpec $ monoid (undefined :: (Total, String))
-
   describe "Time" $ do
     prop "should successfully parse the text representation of time" $ 
       testParser parseTime 

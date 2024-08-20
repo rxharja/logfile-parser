@@ -2,10 +2,11 @@
 module Main (main) where
 
 import Text.RawString.QQ ( r )
-import Data.LogFile 
 import Text.Trifecta 
 import Data.ActivityLog
-import qualified DateTimeTests (main)
+import Parser.LogFile
+import qualified ParserTests (main)
+import qualified DataTests (main)
 
 testLogfile :: String
 testLogfile = [r|
@@ -43,4 +44,5 @@ test = do
 
 main :: IO ()
 main = do
-  DateTimeTests.main
+  ParserTests.main
+  DataTests.main
