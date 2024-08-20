@@ -2,6 +2,7 @@
 module ParserTests where
 
 import Parser.DateTime
+import Parser.LogFile
 import Test.QuickCheck
 import Test.Hspec
 import Test.Hspec.QuickCheck (prop)
@@ -21,6 +22,15 @@ instance Arbitrary Time where
     minutes' <- choose (0, 59)
     return $ Time hours' minutes'
 
+instance Arbitrary Header where
+  arbitrary = Header <$> arbitrary
+
+instance Arbitrary Log where
+  arbitrary = Log <$> arbitrary <*> arbitrary
+
+instance Arbitrary LogFile where
+  arbitrary = arbitrary
+
 testParser :: (Show a, Eq a) => Parser a -> a -> Expectation
 testParser parser x = 
   case parseString parser mempty (show x) of 
@@ -36,3 +46,15 @@ main = hspec $ do
   describe "Date" $ do
     prop "should successfully parse the text representation of date" $ 
       testParser parseDate 
+
+  describe "Header" $ do
+    prop "should successfully parse the text representation of a header" $ 
+      testParser parseHeader 
+
+  describe "Log" $ do
+    prop "should successfully parse the text representation of a log" $ 
+      testParser parseLog 
+
+  describe "LogFile" $ do
+    prop "should successfully parse the text representation of a logfile" $ 
+      testParser parseLogFile 

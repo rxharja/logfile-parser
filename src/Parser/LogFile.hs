@@ -14,7 +14,7 @@ newtype Header = Header { headerDate :: Date } deriving (Ord, Eq)
 instance Show Header where
   show (Header d) = '#' : show d
 
-data Log = Log { logTime :: Time, logEntry :: Entry } deriving (Ord, Eq)
+data Log = Log { logTime :: !Time, logEntry :: !Entry } deriving (Ord, Eq)
 
 instance Show Log where
   show (Log t e) = show t ++ " " ++ e
