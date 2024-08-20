@@ -8,6 +8,8 @@ import Test.Hspec
 import Test.Hspec.QuickCheck (prop)
 import Text.Trifecta (parseString, Result (Success, Failure), ErrInfo (ErrInfo, _errDoc))
 import Text.Trifecta.Parser (Parser)
+import Data.List (isInfixOf)
+import Control.Applicative (Applicative(liftA2))
 
 instance Arbitrary Date where
   arbitrary = do
@@ -26,10 +28,12 @@ instance Arbitrary Header where
   arbitrary = Header <$> arbitrary
 
 instance Arbitrary Log where
-  arbitrary = Log <$> arbitrary <*> arbitrary
+  arbitrary = do
+    let arbitraryEntry = arbitrary `suchThat` liftA2 (&&) (not . isInfixOf "--") (notElem '\n')
+    Log <$> arbitrary <*> arbitraryEntry
 
 instance Arbitrary LogFile where
-  arbitrary = arbitrary
+  arbitrary = LogFile <$> arbitrary
 
 testParser :: (Show a, Eq a) => Parser a -> a -> Expectation
 testParser parser x = 
