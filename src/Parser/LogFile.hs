@@ -17,7 +17,7 @@ instance Show Header where
 data Log = Log { logTime :: !Time, logEntry :: !Entry } deriving (Ord, Eq)
 
 instance Show Log where
-  show (Log t e) = show t ++ " " ++ e
+  show (Log t e) = show t ++ ' ' : e
 
 type Section = (Header, [Log])
 
