@@ -138,3 +138,4 @@ test-suite log-file-parser-test
                     , QuickCheck
                     , hspec
                     , checkers
+                    , containers
