@@ -9,7 +9,8 @@ import Test.Hspec.QuickCheck (prop)
 import Text.Trifecta (parseString, Result (Success, Failure), ErrInfo (ErrInfo, _errDoc))
 import Text.Trifecta.Parser (Parser)
 import Data.List (isInfixOf)
-import Control.Applicative (Applicative(liftA2))
+import Data.Map (fromList)
+import Data.Monoid (All(getAll, All))
 
 instance Arbitrary Date where
   arbitrary = do
@@ -29,36 +30,46 @@ instance Arbitrary Header where
 
 instance Arbitrary Log where
   arbitrary = do
-    let arbitraryEntry = arbitrary `suchThat` liftA2 (&&) (not . isInfixOf "--") (notElem '\n')
+    let stringIsParsable = 
+          getAll . mconcat . fmap All . sequence [notElem '\n', not . null, not . isInfixOf "--"]
+    let arbitraryEntry = (getPrintableString <$> arbitrary) `suchThat` stringIsParsable
     Log <$> arbitrary <*> arbitraryEntry
 
 instance Arbitrary LogFile where
-  arbitrary = LogFile <$> arbitrary
-
+  arbitrary = do
+    let section' = do len <- choose (1,20)
+                      logs <- vectorOf len arbitrary 
+                      header <- arbitrary 
+                      return (header :: Header, logs :: [Log])
+  
+    len <- choose (1,20)
+    sections <- fromList <$> vectorOf len section'
+    return $ LogFile sections
+ 
 testParser :: (Show a, Eq a) => Parser a -> a -> Expectation
-testParser parser x = 
-  case parseString parser mempty (show x) of 
+testParser parser x =
+  case parseString parser mempty (show x) of
    Text.Trifecta.Success y -> y `shouldBe` x
    Text.Trifecta.Failure (ErrInfo {_errDoc=doc}) -> fail (show doc)
 
 main :: IO ()
 main = hspec $ do
   describe "Time" $ do
-    prop "should successfully parse the text representation of time" $ 
-      testParser parseTime 
+    prop "should successfully parse the text representation of time" $
+      testParser parseTime
 
   describe "Date" $ do
-    prop "should successfully parse the text representation of date" $ 
-      testParser parseDate 
+    prop "should successfully parse the text representation of date" $
+      testParser parseDate
 
   describe "Header" $ do
-    prop "should successfully parse the text representation of a header" $ 
-      testParser parseHeader 
+    prop "should successfully parse the text representation of a header" $
+      testParser parseHeader
 
   describe "Log" $ do
-    prop "should successfully parse the text representation of a log" $ 
-      testParser parseLog 
+    prop "should successfully parse the text representation of a log" $
+      testParser parseLog
 
   describe "LogFile" $ do
-    prop "should successfully parse the text representation of a logfile" $ 
-      testParser parseLogFile 
+    prop "should successfully parse the text representation of a logfile" $
+      testParser parseLogFile
