@@ -12,7 +12,7 @@ type Entry = String
 newtype Header = Header { headerDate :: Date } deriving (Ord, Eq)
 
 instance Show Header where
-  show (Header d) = '#' : show d
+  show (Header d) = '#' : ' ' : show d
 
 data Log = Log { logTime :: !Time, logEntry :: !Entry } deriving (Ord, Eq)
 
@@ -24,9 +24,12 @@ type Section = (Header, [Log])
 newtype LogFile = LogFile { logFile :: Map Header [Log] } deriving (Ord, Eq)
 
 instance Show LogFile where
-  show (LogFile m) = ("\n" ++) . unlines . map showSection . M.toList $ m
+  show (LogFile m) = ('\n' :) . unlines . map showSection . M.toList $ m
     where
-      showSection (d,t) = unlines (("# " ++ show d): map show t)
+      showSection (d,t) = unlines (show d: map show t)
+
+section :: Header -> [Log] -> (Header, [Log])
+section = (,)
 
 skipEOL :: Parser ()
 skipEOL = skipMany (oneOf "\n")
@@ -59,7 +62,10 @@ parseLog :: Parser Log
 parseLog = Log <$> parseTime <* char ' ' <*> parseEntry <* skipRest
 
 parseSection :: Parser Section
-parseSection = (,) <$> parseHeader <* skipRest' <*> some parseLog
+parseSection = section <$> parseHeader <* skipRest' <*> some parseLog
 
 parseLogFile :: Parser LogFile
 parseLogFile = (LogFile . M.fromList) <$ many parseEnd <*> many parseSection
+
+parse :: String -> Result LogFile
+parse = parseString parseLogFile mempty 
