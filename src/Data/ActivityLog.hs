@@ -1,6 +1,5 @@
 module Data.ActivityLog where
 
-import Parser.DateTime
 import Parser.LogFile
 import Data.Total
 import Data.Map (Map)
